@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Phase 3: Verify OceanSim sensors on Isaac Sim 6."""
 import sys, os
-sys.stderr = open('/dev/null', 'w')
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from isaacsim import SimulationApp
@@ -102,7 +101,8 @@ try:
     final_pos = rob.GetAttribute('xformOp:translate').Get()
     scenario2.teardown_scenario()
     moved = abs(final_pos[0] - initial_pos[0]) > 0.01 or abs(final_pos[1] - initial_pos[1]) > 0.01 or abs(final_pos[2] - initial_pos[2]) > 0.01
-    results.append(f"[PASS] Waypoint following: moved={moved}, pos={final_pos}")
+    tag = "PASS" if moved else "FAIL"
+    results.append(f"[{tag}] Waypoint following: moved={moved}, pos={final_pos}")
 except Exception as e:
     results.append(f"[FAIL] Waypoint following: {e}")
 
@@ -111,3 +111,6 @@ with open('/tmp/phase3_results.txt', 'w') as f:
         f.write(r + '\n')
 
 app.close()
+
+failed_checks = sum(not result.startswith("[PASS]") for result in results)
+sys.exit(1 if failed_checks else 0)

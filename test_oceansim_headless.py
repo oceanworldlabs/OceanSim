@@ -5,7 +5,6 @@ Tests: UW_Camera, BarometerSensor, DVLsensor, ImagingSonarSensor
 """
 
 import sys
-sys.stderr = open('/dev/null', 'w')
 
 from isaacsim import SimulationApp
 app = SimulationApp({"headless": True})
@@ -51,11 +50,13 @@ SingleRigidPrim(prim_path=robot_prim_path, mass=5.0, translation=np.array([-2.0,
 print("Robot loaded successfully")
 
 # Test BarometerSensor
+failed_checks = 0
 try:
     baro = BarometerSensor(prim_path=robot_prim_path + '/Baro', water_surface_z=1.43389)
     pressure = baro.get_pressure()
     print(f"OK: BarometerSensor - pressure = {pressure:.1f} Pa")
 except Exception as e:
+    failed_checks += 1
     print(f"FAIL: BarometerSensor - {e}")
 
 # Test DVLsensor
@@ -65,6 +66,7 @@ try:
     dvl.add_debug_lines()
     print("OK: DVLsensor - attached and debug lines added")
 except Exception as e:
+    failed_checks += 1
     print(f"FAIL: DVLsensor - {e}")
 
 # Test UW_Camera (just creation, rendering needs timeline)
@@ -76,6 +78,7 @@ try:
     cam.set_clipping_range(0.1, 100)
     print("OK: UW_Camera - created")
 except Exception as e:
+    failed_checks += 1
     print(f"FAIL: UW_Camera - {e}")
 
 # Test ImagingSonarSensor (just creation)
@@ -88,7 +91,9 @@ try:
                                hori_res=4000)
     print("OK: ImagingSonarSensor - created")
 except Exception as e:
+    failed_checks += 1
     print(f"FAIL: ImagingSonarSensor - {e}")
 
-print("\nAll OceanSim sensors tested successfully on Isaac Sim 6!")
+print(f"\nOceanSim sensor checks completed: {4 - failed_checks} passed, {failed_checks} failed")
 app.close()
+sys.exit(1 if failed_checks else 0)
